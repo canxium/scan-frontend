@@ -74,6 +74,7 @@ export function app(): CspDev.DirectiveDescriptor {
 
       // github (spec for api-docs page)
       'raw.githubusercontent.com',
+      '*.canxium.org'
     ].filter(Boolean),
 
     'script-src': [

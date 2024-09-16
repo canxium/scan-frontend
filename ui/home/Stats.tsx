@@ -81,7 +81,13 @@ const Stats = () => {
   React.useEffect((() => {
     let load = async () => {
       const latestBlockNum = await lastestBlockNum();
-      const currentEmission = BigInt(await emissionAt(undefined));
+      let currentEmission = BigInt(0);
+      try {
+        currentEmission = BigInt(await emissionAt(undefined));
+      } catch (error) {
+        console.log("Failed to get current emission")
+      }
+      
       try {
         const emission24h = BigInt(await emissionAt(latestBlockNum - 14400));
         let emissionIn24h = currentEmission - emission24h;
