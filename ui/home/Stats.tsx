@@ -15,14 +15,102 @@ import StatsWidget from 'ui/shared/stats/StatsWidget';
 const hasAvgBlockTime = config.UI.homepage.showAvgBlockTime;
 const rollupFeature = config.features.rollup;
 
-const Stats = () => {
+const emissionAt = async function(blockNum: number | undefined) {
+  const raw = JSON.stringify({
+    "jsonrpc": "2.0",
+    "method": "eth_call",
+    "params": [
+      {
+        "to": "0x6c6331CA2BC039996E833479b7c13Cc62Ab5c6BA",
+        "data": "0xd4aa8838"
+      },
+      blockNum ? '0x' + blockNum.toString(16) : "latest"
+    ],
+    "id": 1
+  });
+
+  const requestOptions = {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: raw
+  };
+
+  const response = await fetch("https://archive-rpc.canxium.org", requestOptions);
+  const { result } = await response.json()
+  return result
+}
+
+const lastestBlockNum = async function() {
+  const raw = JSON.stringify({
+    "jsonrpc": "2.0",
+    "method": "eth_getBlockByNumber",
+    "params": [
+      "latest",
+      false
+    ],
+    "id": 1
+  });
+
+  const requestOptions = {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: raw
+  };
+
+  const response = await fetch("https://rpc.canxium.org", requestOptions)
+  const body = await response.json()
+  const { result } = body
+  const number = parseInt(result.number, 16)
+  return number
+}
+
+const Stats = () => { 
   const [ hasGasTracker, setHasGasTracker ] = React.useState(config.features.gasTracker.isEnabled);
+  const [ cau24hEmission, set24hEmission ] = React.useState('');
+  const [ cau7dEmission, set7dEmission ] = React.useState('');
+  const [ cau30dEmission, set30dEmission ] = React.useState('');
+  // const [ isQueried, setIsQueried ] = React.useState(false);
+  
   const { data, isPlaceholderData, isError, dataUpdatedAt } = useApiQuery('stats', {
     queryOptions: {
       refetchOnMount: false,
       placeholderData: HOMEPAGE_STATS,
     },
   });
+
+  React.useEffect((() => {
+    let load = async () => {
+      const latestBlockNum = await lastestBlockNum();
+      const currentEmission = BigInt(await emissionAt(undefined));
+      try {
+        const emission24h = BigInt(await emissionAt(latestBlockNum - 14400));
+        let emissionIn24h = currentEmission - emission24h;
+        emissionIn24h = emissionIn24h / BigInt(1e18);
+        set24hEmission(emissionIn24h.toString())
+      } catch (error) {
+        console.log('Failed to get 24h emission')
+      }
+
+      try {
+        const emission7d = BigInt(await emissionAt(latestBlockNum - 100800));
+        let emissionIn7d = currentEmission - emission7d;
+        emissionIn7d = emissionIn7d / BigInt(1e18);
+        set7dEmission(emissionIn7d.toString())
+      } catch (error) {
+        console.log('Failed to get 7d emission')
+      }
+
+      try {
+        const emission30d = BigInt(await emissionAt(latestBlockNum - 432000));
+        let emissionIn30d = currentEmission - emission30d;
+        emissionIn30d = emissionIn30d / BigInt(1e18);
+        set30dEmission(emissionIn30d.toString())
+      } catch (error) {
+        console.log('Failed to get 30d emission')
+      }
+    }
+    load()
+  }), [])
 
   React.useEffect(() => {
     if (!isPlaceholderData && !data?.gas_prices?.average) {
@@ -125,6 +213,24 @@ const Stats = () => {
         icon: 'wallet' as const,
         label: 'Wallet addresses',
         value: Number(data.total_addresses).toLocaleString(),
+        isLoading,
+      },
+      {
+        icon: 'token' as const,
+        label: '24h Emissions',
+        value: cau24hEmission + " CAU",
+        isLoading,
+      },
+      {
+        icon: 'token' as const,
+        label: '7d Emissions',
+        value: cau7dEmission + " CAU",
+        isLoading,
+      },
+      {
+        icon: 'token' as const,
+        label: '30d Emissions',
+        value: cau30dEmission + " CAU",
         isLoading,
       },
       hasGasTracker && data.gas_prices && {

@@ -33,6 +33,7 @@ const chain = Object.freeze({
   hasMultipleGasCurrencies: getEnvValue('NEXT_PUBLIC_NETWORK_MULTIPLE_GAS_CURRENCIES') === 'true',
   tokenStandard: getEnvValue('NEXT_PUBLIC_NETWORK_TOKEN_STANDARD_NAME') || 'ERC',
   rpcUrl: getEnvValue('NEXT_PUBLIC_NETWORK_RPC_URL'),
+  archiveRpcUrl: getEnvValue('NEXT_PUBLIC_NETWORK_ARCHIVE_RPC_URL'),
   isTestnet: getEnvValue('NEXT_PUBLIC_IS_TESTNET') === 'true',
   verificationType,
 });
