@@ -46,7 +46,7 @@ export type TokenTransfer = (
 export type TokenTotal = Erc20TotalPayload | Erc721TotalPayload | Erc1155TotalPayload;
 
 interface TokenTransferBase {
-  type: 'token_transfer' | 'token_burning' | 'token_spawning' | 'token_minting';
+  type: 'token_transfer' | 'token_burning' | 'token_spawning' | 'token_minting' | 'contract_fee';
   tx_hash: string;
   from: AddressParam;
   to: AddressParam;

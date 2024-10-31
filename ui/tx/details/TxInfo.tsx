@@ -65,8 +65,34 @@ import TxSocketAlert from 'ui/tx/TxSocketAlert';
 import ZkSyncL2TxnBatchHashesInfo from 'ui/txnBatches/zkSyncL2/ZkSyncL2TxnBatchHashesInfo';
 import { MiningTxData } from 'ui/tx/useMiningTxQuery';
 import TxMiningDetails from './TxMiningDetails';
+import { TokenTransfer } from 'types/api/tokenTransfer';
+import type { AddressParam } from 'types/api/addressParams';
+import { TokenInfo } from 'types/api/token';
 
 const rollupFeature = config.features.rollup;
+const TOKEN_CAU_INFO: TokenInfo<'ERC-20'> = {
+  address: '0x0000000000000000000000000000000000000000',
+  circulating_market_cap: '0',
+  decimals: '18',
+  exchange_rate: null,
+  holders: '0',
+  name: 'Canxium Coin',
+  symbol: 'CAU',
+  total_supply: '',
+  type: 'ERC-20',
+  icon_url: null,
+};
+const FOUNDATION_ADDRESS: AddressParam = {
+  hash: '0xBd65D6efb2C3e6B4dD33C664643BEB8e5E133055',
+  implementations: null,
+  is_contract: false,
+  is_verified: null,
+  name: 'Canxium Foundation',
+  private_tags: [],
+  public_tags: [],
+  watchlist_names: [],
+  ens_domain_name: null,
+};
 
 interface Props {
   data: Transaction | undefined;
@@ -111,6 +137,21 @@ const TxInfo = ({ data, miningData, isLoading, socketStatus }: Props) => {
     ...toAddress?.public_tags || [],
     ...toAddress?.watchlist_names || [],
   ].map((tag) => <Tag key={ tag.label }>{ tag.display_name }</Tag>);
+  const contractFee: Array<TokenTransfer> = [{
+    block_hash: '',
+    from: data.from,
+    log_index: '0',
+    method: 'create_contract',
+    timestamp: data.timestamp || '',
+    to: FOUNDATION_ADDRESS,
+    token: TOKEN_CAU_INFO,
+    total: {
+      decimals: '18',
+      value: '100000000000000000000',
+    },
+    tx_hash: data.hash,
+    type: 'contract_fee',
+  }];
 
   const executionSuccessBadge = toAddress?.is_contract && data.result === 'success' ? (
     <Tooltip label="Contract execution completed">
@@ -467,6 +508,12 @@ const TxInfo = ({ data, miningData, isLoading, socketStatus }: Props) => {
           <span>[ Contract creation ]</span>
         ) }
       </DetailsInfoItem.Value>
+
+      { !(data.to && data.to.hash) ? (
+        <>
+          <TxDetailsTokenTransfers data={ contractFee } txHash={ data.hash } isOverflow={ data.token_transfers_overflow }/>
+        </>
+      ) : (<></>)}
 
       { data.token_transfers && <TxDetailsTokenTransfers data={ data.token_transfers } txHash={ data.hash } isOverflow={ data.token_transfers_overflow }/> }
 

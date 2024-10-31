@@ -21,6 +21,7 @@ const TOKEN_TRANSFERS_TYPES = [
   { title: 'Tokens minted', hint: 'List of tokens minted in the transaction', type: 'token_minting' },
   { title: 'Tokens burnt', hint: 'List of tokens burnt in the transaction', type: 'token_burning' },
   { title: 'Tokens created', hint: 'List of tokens created in the transaction', type: 'token_spawning' },
+  { title: 'Contract creation fee', hint: 'Contract creation fee in the transaction', type: 'contract_fee' },
 ];
 
 const TxDetailsTokenTransfers = ({ data, txHash, isOverflow }: Props) => {
