@@ -28,6 +28,7 @@ import TxSubHeading from 'ui/tx/TxSubHeading';
 import TxTokenTransfer from 'ui/tx/TxTokenTransfer';
 import TxUserOps from 'ui/tx/TxUserOps';
 import useTxQuery from 'ui/tx/useTxQuery';
+import useMiningTxQuery from 'ui/tx/useMiningTxQuery';
 
 const txInterpretation = config.features.txInterpretation;
 
@@ -37,6 +38,8 @@ const TransactionPageContent = () => {
 
   const hash = getQueryParamString(router.query.hash);
   const txQuery = useTxQuery();
+  const miningTxQuery = useMiningTxQuery({ hash: hash });
+
   const { data, isPlaceholderData, isError, error, errorUpdateCount } = txQuery;
 
   const showDegradedView = publicClient && ((isError && error.status !== 422) || isPlaceholderData) && errorUpdateCount > 0;
@@ -44,7 +47,7 @@ const TransactionPageContent = () => {
   const tabs: Array<RoutedTab> = (() => {
     const detailsComponent = showDegradedView ?
       <TxDetailsDegraded hash={ hash } txQuery={ txQuery }/> :
-      <TxDetails txQuery={ txQuery }/>;
+      <TxDetails txQuery={ txQuery } miningTxQuery={miningTxQuery}/>;
 
     return [
       {

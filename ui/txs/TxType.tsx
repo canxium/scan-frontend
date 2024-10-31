@@ -32,7 +32,7 @@ const TxType = ({ types, isLoading }: Props) => {
       colorScheme = 'blue';
       break;
     case 'blob_transaction':
-      label = 'Blob txn';
+      label = 'Mining txn';
       colorScheme = 'yellow';
       break;
     case 'contract_creation':

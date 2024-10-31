@@ -63,16 +63,19 @@ import TxRevertReason from 'ui/tx/details/TxRevertReason';
 import TxAllowedPeekers from 'ui/tx/TxAllowedPeekers';
 import TxSocketAlert from 'ui/tx/TxSocketAlert';
 import ZkSyncL2TxnBatchHashesInfo from 'ui/txnBatches/zkSyncL2/ZkSyncL2TxnBatchHashesInfo';
+import { MiningTxData } from 'ui/tx/useMiningTxQuery';
+import TxMiningDetails from './TxMiningDetails';
 
 const rollupFeature = config.features.rollup;
 
 interface Props {
   data: Transaction | undefined;
+  miningData: MiningTxData | undefined;
   isLoading: boolean;
   socketStatus?: 'close' | 'error';
 }
 
-const TxInfo = ({ data, isLoading, socketStatus }: Props) => {
+const TxInfo = ({ data, miningData, isLoading, socketStatus }: Props) => {
   const [ isExpanded, setIsExpanded ] = React.useState(false);
 
   const handleCutClick = React.useCallback(() => {
@@ -466,6 +469,8 @@ const TxInfo = ({ data, isLoading, socketStatus }: Props) => {
       </DetailsInfoItem.Value>
 
       { data.token_transfers && <TxDetailsTokenTransfers data={ data.token_transfers } txHash={ data.hash } isOverflow={ data.token_transfers_overflow }/> }
+
+      { miningData?.algorithm && <TxMiningDetails nonce={ miningData?.powNonce } algorithm={ miningData?.algorithm } difficulty={ miningData?.difficulty } digest={ miningData?.mixDigest } /> }
 
       <DetailsInfoItemDivider/>
 
