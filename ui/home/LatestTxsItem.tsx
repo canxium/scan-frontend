@@ -50,7 +50,7 @@ const LatestTxsItem = ({ tx, isLoading }: Props) => {
         <TxAdditionalInfo tx={ tx } isLoading={ isLoading } my="3px"/>
         <Box ml={ 3 } w="calc(100% - 40px)">
           <HStack flexWrap="wrap" my="3px">
-            <TxType types={ tx.tx_types } isLoading={ isLoading }/>
+            <TxType tx={ tx } types={ tx.tx_types } isLoading={ isLoading }/>
             <TxStatus status={ tx.status } errorText={ tx.status === 'error' ? tx.result : undefined } isLoading={ isLoading }/>
             <TxWatchListTags tx={ tx } isLoading={ isLoading }/>
           </HStack>

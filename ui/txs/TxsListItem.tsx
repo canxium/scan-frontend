@@ -40,8 +40,8 @@ const TxsListItem = ({ tx, isLoading, showBlockInfo, currentAddress, enableTimeI
       <Flex justifyContent="space-between" mt={ 4 }>
         <HStack flexWrap="wrap">
           { tx.translation ?
-            <TxTranslationType types={ tx.tx_types } isLoading={ isLoading || tx.translation.isLoading } translatationType={ tx.translation.data?.type }/> :
-            <TxType types={ tx.tx_types } isLoading={ isLoading }/>
+            <TxTranslationType tx={ tx } types={ tx.tx_types } isLoading={ isLoading || tx.translation.isLoading } translatationType={ tx.translation.data?.type }/> :
+            <TxType tx={ tx } types={ tx.tx_types } isLoading={ isLoading }/>
           }
           <TxStatus status={ tx.status } errorText={ tx.status === 'error' ? tx.result : undefined } isLoading={ isLoading }/>
           <TxWatchListTags tx={ tx } isLoading={ isLoading }/>
