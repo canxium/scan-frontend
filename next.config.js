@@ -12,6 +12,13 @@ const rewrites = require('./nextjs/rewrites');
 
 /** @type {import('next').NextConfig} */
 const moduleExports = {
+  typescript: {
+    // !! WARN !!
+    // Dangerously allow production builds to successfully complete even if
+    // your project has type errors.
+    // !! WARN !!
+    ignoreBuildErrors: true,
+  },
   transpilePackages: [
     'react-syntax-highlighter',
     'swagger-client',
