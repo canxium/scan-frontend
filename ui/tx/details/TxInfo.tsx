@@ -65,6 +65,7 @@ import TxSocketAlert from 'ui/tx/TxSocketAlert';
 import ZkSyncL2TxnBatchHashesInfo from 'ui/txnBatches/zkSyncL2/ZkSyncL2TxnBatchHashesInfo';
 import { MiningTxData } from 'ui/tx/useMiningTxQuery';
 import TxMiningDetails from './TxMiningDetails';
+import TxMergeMiningDetails from './TxMergeMiningDetails';
 import { TokenTransfer } from 'types/api/tokenTransfer';
 import type { AddressParam } from 'types/api/addressParams';
 import { TokenInfo } from 'types/api/token';
@@ -517,7 +518,8 @@ const TxInfo = ({ data, miningData, isLoading, socketStatus }: Props) => {
 
       { data.token_transfers && <TxDetailsTokenTransfers data={ data.token_transfers } txHash={ data.hash } isOverflow={ data.token_transfers_overflow }/> }
 
-      { miningData?.algorithm && <TxMiningDetails nonce={ miningData?.powNonce } algorithm={ miningData?.algorithm } difficulty={ miningData?.difficulty } digest={ miningData?.mixDigest } /> }
+      { miningData && !miningData.isMerge && miningData?.algorithm && <TxMiningDetails nonce={ miningData?.powNonce } algorithm={ miningData?.algorithm } difficulty={ miningData?.difficulty } digest={ miningData?.mixDigest } /> }
+      { miningData && miningData?.isMerge && <TxMergeMiningDetails chainName={miningData?.mergeChain} miner={miningData?.mergeMiner} blockHash={miningData?.mergeBlockHash} nonce={ miningData?.powNonce } algorithm={ miningData?.algorithm } difficulty={ miningData?.difficulty }  /> }
 
       <DetailsInfoItemDivider/>
 
@@ -597,7 +599,7 @@ const TxInfo = ({ data, miningData, isLoading, socketStatus }: Props) => {
             hint="Value sent in the native token (and USD) if applicable"
             isLoading={ isLoading }
           >
-            Value
+            { miningData ? "Reward" : "Value" }
           </DetailsInfoItem.Label>
           <DetailsInfoItem.Value>
             <CurrencyValue

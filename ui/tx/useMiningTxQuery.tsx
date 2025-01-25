@@ -2,6 +2,7 @@ import type { UseQueryResult } from '@tanstack/react-query';
 import { useQuery } from '@tanstack/react-query';
 import React from 'react';
 import type { ResourceError } from 'lib/api/resources';
+import chain from 'configs/app/chain';
 
 const getMiningTransaction = async function(hash: string) {
   const raw = JSON.stringify({
@@ -17,13 +18,17 @@ const getMiningTransaction = async function(hash: string) {
     body: raw
   };
 
-  const response = await fetch("https://rpc.canxium.org", requestOptions);
+  const response = await fetch(chain.rpcUrl || chain.archiveRpcUrl || "", requestOptions);
   /* tslint:disable-next-line */
   const { result } = await response.json()
   return result
 }
 
 export type MiningTxData = {
+  isMerge: boolean;
+  mergeChain: string;
+  mergeBlockHash: string;
+  mergeMiner: string;
   algorithm: string;
   difficulty: string;
   mixDigest: string;
@@ -45,6 +50,10 @@ export default function useMiningTxQuery({ hash }: Params): MiningTxQuery {
     queryFn: async() => {
       let tx = await getMiningTransaction(hash);
       let raw: MiningTxData = {
+        isMerge: tx.type == "0x7e",
+        mergeChain: tx.mergeChain == "0x1" ? "Kaspa" : "Unknown",
+        mergeBlockHash: tx.mergeBlockHash,
+        mergeMiner: tx.mergeBlockMiner,
         algorithm: tx.algorithm,
         difficulty: tx.difficulty,
         mixDigest: tx.mixDigest,

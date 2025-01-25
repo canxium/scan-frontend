@@ -16,9 +16,6 @@ const TxDetails = ({ txQuery, miningTxQuery }: Props) => {
   if (txQuery.isError) {
     return <DataFetchAlert/>;
   }
-  if (miningTxQuery.isError) {
-    return <DataFetchAlert/>;
-  }
 
   return (
     <>
