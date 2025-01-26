@@ -51,14 +51,20 @@ export default function useMiningTxQuery({ hash }: Params): MiningTxQuery {
       let tx = await getMiningTransaction(hash);
       let raw: MiningTxData = {
         isMerge: tx.type == "0x7e",
-        mergeChain: tx.mergeChain == "0x1" ? "Kaspa" : "Unknown",
-        mergeBlockHash: tx.mergeBlockHash,
-        mergeMiner: tx.mergeBlockMiner,
+        mergeChain: "",
+        mergeBlockHash: "",
+        mergeMiner: "",
         algorithm: tx.algorithm,
         difficulty: tx.difficulty,
         mixDigest: tx.mixDigest,
         powNonce: tx.powNonce,
       };
+
+      if (raw.isMerge) {
+        raw.mergeChain = tx.auxPoW.chain == "0x1" ? "Kaspa" : "Unknown"
+        raw.mergeBlockHash = tx.auxPoW.hash
+        raw.mergeMiner = tx.auxPoW.miner
+      }
 
       return raw;
     },
