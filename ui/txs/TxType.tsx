@@ -28,7 +28,7 @@ const TxType = ({ tx, types, isLoading }: Props) => {
   let colorScheme;
 
   if (tx.type == 126) {
-    label = 'MergeMining txn';
+    label = 'Cross Mining';
     colorScheme = 'red';
   } else {
     switch (typeToShow) {
