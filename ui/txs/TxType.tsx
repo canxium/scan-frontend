@@ -28,8 +28,8 @@ const TxType = ({ tx, types, isLoading }: Props) => {
   let colorScheme;
 
   if (tx.type == 126) {
-    label = 'Cross Mining';
-    colorScheme = 'red';
+    label = 'Cross-Chain Mining';
+    colorScheme = 'green';
   } else {
     switch (typeToShow) {
       case 'contract_call':
@@ -37,8 +37,8 @@ const TxType = ({ tx, types, isLoading }: Props) => {
         colorScheme = 'blue';
         break;
       case 'blob_transaction':
-        label = 'Mining txn';
-        colorScheme = 'yellow';
+        label = 'Retained Mining';
+        colorScheme = 'red';
         break;
       case 'contract_creation':
         label = 'Contract creation';
