@@ -23,13 +23,13 @@ const TxMergeMiningDetails = ({ chainName, miner, blockHash, algorithm, difficul
       <DetailsInfoItem.Label
         hint="Other data related to this transaction"
       >
-        Merge Mining:
+        Cross Mining:
       </DetailsInfoItem.Label>
       <DetailsInfoItem.Value>
         {
           [
             <Box key="miningChain">
-              <Text as="span" fontWeight="500">Merge Chain: </Text>
+              <Text as="span" fontWeight="500">Chain: </Text>
               <Text fontWeight="600" as="span">{chainName}</Text>
             </Box>,
             <Box key="miningDifficulty">

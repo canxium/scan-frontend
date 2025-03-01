@@ -40,6 +40,43 @@ const emissionAt = async function(blockNum: number | undefined) {
   return result
 }
 
+const validator24hReward = async function(blockNum: number | undefined) {
+  const raw = JSON.stringify({
+    "jsonrpc": "2.0",
+    "method": "eth_call",
+    "params": [
+      {
+        "to": "0x6c6331CA2BC039996E833479b7c13Cc62Ab5c6BA",
+        "data": "0x5e1c1516"
+      },
+      blockNum ? '0x' + blockNum.toString(16) : "latest"
+    ],
+    "id": 1
+  });
+
+  const requestOptions = {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: raw
+  };
+
+  const response = await fetch("https://archive-rpc.canxium.org", requestOptions);
+  const { result } = await response.json()
+  return result
+}
+
+
+const validatorStakeCau = async function() {
+  const requestOptions = {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  };
+
+  const response = await fetch("https://epoch.canxium.org/index/data", requestOptions);
+  const result = await response.json()
+  return result.eligible
+}
+
 const lastestBlockNum = async function() {
   const raw = JSON.stringify({
     "jsonrpc": "2.0",
@@ -69,6 +106,7 @@ const Stats = () => {
   const [ cau24hEmission, set24hEmission ] = React.useState('');
   const [ cau7dEmission, set7dEmission ] = React.useState('');
   const [ cau30dEmission, set30dEmission ] = React.useState('');
+  const [ validator24hAPY, setvalidator24hAPY ] = React.useState('');
   // const [ isQueried, setIsQueried ] = React.useState(false);
   
   const { data, isPlaceholderData, isError, dataUpdatedAt } = useApiQuery('stats', {
@@ -82,8 +120,10 @@ const Stats = () => {
     let load = async () => {
       const latestBlockNum = await lastestBlockNum();
       let currentEmission = BigInt(0);
+      let currentValidatorReward = BigInt(0);
       try {
         currentEmission = BigInt(await emissionAt(undefined));
+        currentValidatorReward = BigInt(await validator24hReward(undefined));
       } catch (error) {
         console.log("Failed to get current emission")
       }
@@ -113,6 +153,19 @@ const Stats = () => {
         set30dEmission(emissionIn30d.toString())
       } catch (error) {
         console.log('Failed to get 30d emission')
+      }
+
+      try {
+        const validator24h = BigInt(await validator24hReward(latestBlockNum - 14400));
+        let stakedCAU = BigInt(await validatorStakeCau());
+        stakedCAU = stakedCAU / BigInt(1e9);
+        let rewardIn24h = currentValidatorReward - validator24h;
+        rewardIn24h = rewardIn24h / BigInt(1e18);
+
+        let APY = BigInt(100 * 365) * rewardIn24h / stakedCAU;
+        setvalidator24hAPY(APY.toString())
+      } catch (error) {
+        console.log('Failed to get 24h emission')
       }
     }
     load()
@@ -237,6 +290,12 @@ const Stats = () => {
         icon: 'token' as const,
         label: '30d Emissions',
         value: cau30dEmission + " CAU",
+        isLoading,
+      },
+      {
+        icon: 'token' as const,
+        label: 'Validator Live APY',
+        value: validator24hAPY + " %",
         isLoading,
       },
       hasGasTracker && data.gas_prices && {
