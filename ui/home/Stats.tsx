@@ -41,6 +41,10 @@ const emissionAt = async function(blockNum: number | undefined) {
 }
 
 const crossChainEmissionAt = async function(blockNum: number | undefined) {
+  // first block support cross-chain mining
+  if (blockNum && blockNum > 7655433) {
+    blockNum = 7655433
+  }
   const raw = JSON.stringify({
     "jsonrpc": "2.0",
     "method": "eth_call",
