@@ -11,63 +11,10 @@ import GasPrice from 'ui/shared/gas/GasPrice';
 import IconSvg from 'ui/shared/IconSvg';
 import type { Props as StatsWidgetProps } from 'ui/shared/stats/StatsWidget';
 import StatsWidget from 'ui/shared/stats/StatsWidget';
+import next from 'next';
 
 const hasAvgBlockTime = config.UI.homepage.showAvgBlockTime;
 const rollupFeature = config.features.rollup;
-
-const emissionAt = async function(blockNum: number | undefined) {
-  const raw = JSON.stringify({
-    "jsonrpc": "2.0",
-    "method": "eth_call",
-    "params": [
-      {
-        "to": "0x6c6331CA2BC039996E833479b7c13Cc62Ab5c6BA",
-        "data": "0xd4aa8838"
-      },
-      blockNum ? '0x' + blockNum.toString(16) : "latest"
-    ],
-    "id": 1
-  });
-
-  const requestOptions = {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: raw
-  };
-
-  const response = await fetch("https://archive-rpc.canxium.org", requestOptions);
-  const { result } = await response.json()
-  return result
-}
-
-const crossChainEmissionAt = async function(blockNum: number | undefined) {
-  // first block support cross-chain mining
-  if (blockNum && blockNum > 7655433) {
-    blockNum = 7655433
-  }
-  const raw = JSON.stringify({
-    "jsonrpc": "2.0",
-    "method": "eth_call",
-    "params": [
-      {
-        "to": "0x6c6331CA2BC039996E833479b7c13Cc62Ab5c6BA",
-        "data": "0x2126bd7e"
-      },
-      blockNum ? '0x' + blockNum.toString(16) : "latest"
-    ],
-    "id": 1
-  });
-
-  const requestOptions = {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: raw
-  };
-
-  const response = await fetch("https://archive-rpc.canxium.org", requestOptions);
-  const { result } = await response.json()
-  return result
-}
 
 const validator24hReward = async function(blockNum: number | undefined) {
   const raw = JSON.stringify({
@@ -92,6 +39,45 @@ const validator24hReward = async function(blockNum: number | undefined) {
   const response = await fetch("https://archive-rpc.canxium.org", requestOptions);
   const { result } = await response.json()
   return result
+}
+
+const KaspaCrossMiningBaseRewards = [
+  183829, 91915, 45958, 25868, 23963, 23254, 22566, 21898, 21249, 20620,
+  20010, 19418, 18843, 18285, 17744, 17219, 16709, 16214, 15734, 15269,
+  14817, 14378, 13953, 13540, 13139, 12750, 12372, 12006, 11651, 11306,
+  10971, 10647, 10331, 10026, 9729, 9441, 9161, 8890, 8627, 8372,
+  8124, 7883, 7650, 7424, 7204, 6991, 6784, 6583, 6388, 6199,
+  6016, 5838, 5665, 5497, 5334, 5176, 5023, 4875, 4730, 4590,
+  4454, 4323, 4195, 4070, 3950, 3833, 3720, 3610, 3503, 3399,
+  3298, 3201, 3106, 3014, 2925, 2838, 2754, 2673, 2594, 2517,
+  2442, 2370, 2300, 2232, 2166, 2102, 2040, 1979, 1921, 1864,
+  1809, 1755, 1703, 1653, 1604, 1556, 1510, 1466, 1422, 1380,
+  1339, 1300, 1261, 1224, 1188, 1153, 1119, 1085, 1053, 1022,
+  992, 963, 934, 906, 880, 854, 828, 804, 780, 757,
+  735, 713, 692, 671, 651, 632, 613, 595, 578, 561,
+  544, 528, 512, 497, 482, 468, 454, 441, 428, 415,
+  403, 400
+];
+
+const KaspaPhaseThreeMonth = KaspaCrossMiningBaseRewards.length - 1;
+
+function timePassedSinceFork(forkTime, currentTime) {
+  if (currentTime < forkTime) return { dayNum: 0, month: 0 };
+
+  const dayNum = Math.floor((currentTime - forkTime) / (24 * 60 * 60 * 1000));
+  const month = Math.floor((currentTime - forkTime) / (30 * 24 * 60 * 60 * 1000));
+  
+  return { dayNum, month };
+}
+
+function getNextBaseReward(forkTime) {
+  const now = Date.now();
+  const { month } = timePassedSinceFork(forkTime, now);
+  const rewardWei = month < KaspaPhaseThreeMonth ? KaspaCrossMiningBaseRewards[month] : KaspaCrossMiningBaseRewards[KaspaPhaseThreeMonth];
+  
+  // Convert from Wei per 1,000,000 difficulty to CAU per 1 EH difficulty
+  const rewardCAU = (rewardWei / 1e6) + " CAU"; // Scaling up to 1 EH
+  return rewardCAU;
 }
 
 
@@ -130,12 +116,34 @@ const lastestBlockNum = async function() {
   return number
 }
 
+function timeUntilNextReduction() {
+  const forkTime = 1740787200 * 1000; // Convert to milliseconds
+  const reductionInterval = 30 * 24 * 60 * 60 * 1000; // 30 days in ms
+  const now = Date.now();
+  
+  // Calculate how many reductions have passed since fork time
+  const elapsed = now - forkTime;
+  const periodsPassed = Math.floor(elapsed / reductionInterval);
+  
+  // Calculate next reduction time
+  const nextReductionTime = forkTime + (periodsPassed + 1) * reductionInterval;
+  const timeLeft = nextReductionTime - now;
+  
+  // Convert to days and hours
+  const daysLeft = Math.floor(timeLeft / (24 * 60 * 60 * 1000));
+  const hoursLeft = Math.floor((timeLeft % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+  
+  return daysLeft > 0 ? `${daysLeft} Days` : `${hoursLeft} Hours`;
+}
+
 const Stats = () => { 
+  console.log(timeUntilNextReduction());
+  console.log(getNextBaseReward(1740787200 * 1000));
   const [ hasGasTracker, setHasGasTracker ] = React.useState(config.features.gasTracker.isEnabled);
   const [ cau30dEmission, set30dEmission ] = React.useState('');
   const [ validator24hAPY, setvalidator24hAPY ] = React.useState('');
   // const [ isQueried, setIsQueried ] = React.useState(false);
-  
+  const heliumFork = 1740787200;
   const { data, isPlaceholderData, isError, dataUpdatedAt } = useApiQuery('stats', {
     queryOptions: {
       refetchOnMount: false,
@@ -146,23 +154,7 @@ const Stats = () => {
   React.useEffect((() => {
     let load = async () => {
       const latestBlockNum = await lastestBlockNum();
-      let currentEmission = BigInt(0);
       let currentValidatorReward = BigInt(0);
-      try {
-        currentEmission = BigInt(await emissionAt(undefined)) + BigInt(await crossChainEmissionAt(undefined));
-        currentValidatorReward = BigInt(await validator24hReward(undefined));
-      } catch (error) {
-        console.log("Failed to get current emission")
-      }
-
-      try {
-        const emission30d = BigInt(await emissionAt(latestBlockNum - 432000)) + BigInt(await crossChainEmissionAt(latestBlockNum - 432000));;
-        let emissionIn30d = currentEmission - emission30d;
-        emissionIn30d = emissionIn30d / BigInt(1e18);
-        set30dEmission(emissionIn30d.toString())
-      } catch (error) {
-        console.log('Failed to get 30d emission')
-      }
 
       try {
         const validator24h = BigInt(await validator24hReward(latestBlockNum - 14400));
@@ -285,8 +277,14 @@ const Stats = () => {
       },
       {
         icon: 'token' as const,
-        label: '30d Emissions',
-        value: cau30dEmission + " CAU",
+        label: 'Next Reduction',
+        value: timeUntilNextReduction(),
+        isLoading,
+      },
+      {
+        icon: 'token' as const,
+        label: 'Next Reward / EH',
+        value: getNextBaseReward(1740787200 * 1000) + " CAU",
         isLoading,
       },
       {
