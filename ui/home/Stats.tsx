@@ -138,13 +138,9 @@ function timeUntilNextReduction() {
 }
 
 const Stats = () => { 
-  console.log(timeUntilNextReduction());
-  console.log(getNextBaseReward(1740787200 * 1000));
   const [ hasGasTracker, setHasGasTracker ] = React.useState(config.features.gasTracker.isEnabled);
-  const [ cau30dEmission, set30dEmission ] = React.useState('');
   const [ validator24hAPY, setvalidator24hAPY ] = React.useState('');
   // const [ isQueried, setIsQueried ] = React.useState(false);
-  const heliumFork = 1740787200;
   const { data, isPlaceholderData, isError, dataUpdatedAt } = useApiQuery('stats', {
     queryOptions: {
       refetchOnMount: false,
@@ -154,10 +150,9 @@ const Stats = () => {
 
   React.useEffect((() => {
     let load = async () => {
-      const latestBlockNum = await lastestBlockNum();
-      let currentValidatorReward = BigInt(0);
-
       try {
+        const latestBlockNum = await lastestBlockNum();
+        const currentValidatorReward = BigInt(await validator24hReward(undefined));
         const validator24h = BigInt(await validator24hReward(latestBlockNum - 14400));
         let stakedCAU = BigInt(await validatorStakeCau());
         stakedCAU = stakedCAU / BigInt(1e9);
