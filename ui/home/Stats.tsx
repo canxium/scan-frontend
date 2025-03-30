@@ -72,7 +72,8 @@ function timePassedSinceFork(forkTime, currentTime) {
 
 function getNextBaseReward(forkTime) {
   const now = Date.now();
-  const { month } = timePassedSinceFork(forkTime, now);
+  let { month } = timePassedSinceFork(forkTime, now);
+  month += 1;
   const rewardWei = month < KaspaPhaseThreeMonth ? KaspaCrossMiningBaseRewards[month] : KaspaCrossMiningBaseRewards[KaspaPhaseThreeMonth];
   
   // Convert from Wei per 1,000,000 difficulty to CAU per 1 EH difficulty
@@ -284,7 +285,7 @@ const Stats = () => {
       {
         icon: 'token' as const,
         label: 'Next Reward / EH',
-        value: getNextBaseReward(1740787200 * 1000) + " CAU",
+        value: getNextBaseReward(1740787200 * 1000),
         isLoading,
       },
       {
