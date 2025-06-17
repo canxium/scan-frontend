@@ -22,15 +22,17 @@ const TYPES_ORDER: Array<TransactionType> = [
 ];
 
 const TxType = ({ tx, types, isLoading }: Props) => {
-  const typeToShow = types.sort((t1, t2) => TYPES_ORDER.indexOf(t1) - TYPES_ORDER.indexOf(t2))[0];
-
   let label;
   let colorScheme;
 
   if (tx.type == 126) {
     label = 'Cross-Chain Mining';
     colorScheme = 'green';
+  } else if (tx.type == 3) {
+    label = 'Retained Mining';
+    colorScheme = 'red';
   } else {
+    const typeToShow = types.sort((t1, t2) => TYPES_ORDER.indexOf(t1) - TYPES_ORDER.indexOf(t2))[0];
     switch (typeToShow) {
       case 'contract_call':
         label = 'Contract call';
